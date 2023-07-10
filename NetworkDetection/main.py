@@ -182,9 +182,7 @@ while True:
     for result in scanlist:
         ssid, bssid, channel, RSSI, authmode, hidden = result
         
-        b = ssid.decode()
-        #= bytearray(ssid, encoding="utf-8")
-        
+        b = ssid.decode()        
         print("     %s == %s,  authmode=%d" % (b, ubinascii.hexlify(bssid), authmode))
         
         if b == 'Hello':
@@ -211,6 +209,9 @@ while True:
         print('network connection failed')
         continue
 
+
+    print(status)
+    
     #addr = socket.getaddrinfo('0.0.0.0', 25)[0][-1]
 
     #pokeWatchDog()
