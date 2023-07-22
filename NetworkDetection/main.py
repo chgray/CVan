@@ -19,6 +19,39 @@ from time import sleep
 from machine import Pin
 from machine import WDT
 
+import machine
+import time
+from time import sleep
+
+
+ # Display Image & text on I2C driven ssd1306 OLED display 
+from machine import Pin, I2C
+from ssd1306 import SSD1306_I2C
+import framebuf
+import math
+import utime
+WIDTH  = 128                                            # oled display width
+HEIGHT = 64                                             # oled display height
+
+# Explicit Method
+sda=machine.Pin(4)
+scl=machine.Pin(5)
+i2c=machine.I2C(0,sda=sda, scl=scl, freq=400000)
+#  print(i2c.scan())
+from ssd1306 import SSD1306_I2C
+oled = SSD1306_I2C(128, 64, i2c)
+
+
+
+def updateLEDScreen(msg, msg2):
+    oled.fill(0) # Black
+    oled.text(msg, 0, 0)   
+    oled.text(msg2, 0, 20)       
+    oled.show()
+        
+
+updateLEDScreen("Booting", "Init")
+
 fixedLed = Pin("LED", Pin.OUT)
 wdt = WDT(timeout=8000) #timeout is in ms
 timer = Timer()
@@ -39,6 +72,7 @@ def pokeWatchDogTimer(t):
 timer.init(mode=Timer.PERIODIC, period=1000, callback=pokeWatchDogTimer)
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
+updateLEDScreen("Booting", "Wifi on")
 
 
 
@@ -177,6 +211,7 @@ m_password = 'deadbeef01'
 
 while True:
     scanlist = wlan.scan()
+    updateLEDScreen("Booting", "Got WiFiScan")
 
     print("Got Scanlist")
     for result in scanlist:
@@ -193,17 +228,20 @@ while True:
     print("Scan Complete")
 
     #pokeWatchDog()
+    updateLEDScreen("Booting", "NET:%s" % m_ssid);
     wlan.connect(m_ssid, m_password)
 
+    updateLEDScreen("Connecting!", "NET:%s" % m_ssid);
+    
     while True:
         print('waiting for connection...  Status=%d, connected=%d' % (wlan.status(), wlan.isconnected()))
         if wlan.status() < 0 or wlan.status() >= 3:
+            updateLEDScreen("Connected!", "NET:%s" % m_ssid);
             break
         #pokeWatchDog()
         time.sleep(1)
 
     if wlan.isconnected():
-        print('connected')
         status = wlan.ifconfig()
     else:
         print('network connection failed')
@@ -211,14 +249,27 @@ while True:
 
 
     print(status)
-    
-    #addr = socket.getaddrinfo('0.0.0.0', 25)[0][-1]
-
+    print("--- %s" % status[0]) 
+    ipAddress = status[0]   
+   
     #pokeWatchDog()
     #s = socket.socket()
     #s.bind(addr)
     #s.listen(1)
 
     #print('listening on', addr)
-
-    ping('8.8.8.8', count=4000, timeout=5000, interval=50, quiet=False, size=64)
+    
+    # return (n_trans, n_recv)
+    t = 0
+    r = 0
+    while True:
+        if False == wlan.isconnected():
+            print("NOT onnected")
+            break
+            
+        trans, recv = ping('8.8.8.8', count=4, timeout=500, interval=50, quiet=False, size=64)
+        t += trans
+        r += recv
+        updateLEDScreen(("STATS:%s" % ipAddress), ("T:%d  R:%d" % (t, r)))
+    #print("%d --- %d" % trans, recv)
+    
