@@ -43,15 +43,27 @@ oled = SSD1306_I2C(128, 64, i2c)
 
 
 led_row_3 = ""
+led_row_4 = ""
+wifi_confidence = 50
+
 def updateLEDScreen(msg, msg2):
     oled.fill(0) # Black
     oled.text(msg, 0, 0)   
     oled.text(msg2, 0, 15)   
-    oled.text(led_row_3, 0, 30)    
+    oled.text(led_row_3, 0, 30) 
+    oled.text(led_row_4, 0, 45)    
+    oled.rect(0,50,WIDTH,12, 1)
+    
+    #p/100 = i/o
+    w = (int)(wifi_confidence/100 * (WIDTH-2))
+    oled.fill_rect(1, 50, w, 12, 1)
+    
+    #oled.fill_rect(40,40,20,10,1)
     oled.show()
         
 
 updateLEDScreen("Booting", "Init")
+
 
 fixedLed = Pin("LED", Pin.OUT)
 wdt = WDT(timeout=8000) #timeout is in ms
@@ -262,16 +274,38 @@ while True:
     #print('listening on', addr)
     
     # return (n_trans, n_recv)
-    t = 0
-    r = 0
+    trans = 5000
+    recv = 0
+    idx = 0
+    goodMsgs = []
+    packets = 2
+    steps = 20
+    
+    for idx in range(0, steps, 1):
+        print("Setting msg idx %d" % idx)
+        goodMsgs.append(0)
+        goodMsgs[idx] = 0
+            
     while True:
         if False == wlan.isconnected():
             print("NOT onnected")
-            break
-            
-        trans, recv = ping('8.8.8.8', count=4, timeout=500, interval=50, quiet=False, size=64)
-        t += trans
-        r += recv
-        updateLEDScreen("STATS:", ("T:%d  R:%d" % (t, r)))
+            break        
+       
+        ntrans, nrecv = ping('8.8.8.8', count=packets, timeout=500, interval=50, quiet=False, size=64)
+        trans += ntrans
+        recv += nrecv
+        
+        idx += 1
+        if idx >= len(goodMsgs):
+            idx = 0
+        
+        goodMsgs[idx] = nrecv
+        total = 0
+        for i in range(0, len(goodMsgs), 1):
+            total += goodMsgs[i]
+        
+        wifi_confidence = (int)((total / (packets * len(goodMsgs))) * 100)
+        #updateLEDScreen("CONFIDENCE", ("%s" % wifi_confidence))
+        updateLEDScreen(m_ssid, ("T:%d  R:%d" % (packets * len(goodMsgs), total)))
     #print("%d --- %d" % trans, recv)
     
