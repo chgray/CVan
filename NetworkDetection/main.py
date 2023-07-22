@@ -284,12 +284,27 @@ def findIdexInArray(list, item):
 
     return -1
 
+
+def MainMenu():
+    menu = []
+    menu.append("Test Network")
+    menu.append("Find Network")
+    menuIDx = SelectFromList(menu)
+    
+    if 0 == menuIdx:
+        TestNetwork()
+    elif 1 == menuIdx:
+        FindWifi()
+    
+
+
 m_ssid = 'HelloX'
 m_password = 'deadbeef01'
 
+MainMenu()
 
-while True:
-    
+
+def FindWifi():
     wifiIdx = 0
     wifiSSIDs = []
     wifiSSIDs.append("<rescan>")
@@ -326,76 +341,79 @@ while True:
             
 
     m_ssid = wifiSSIDs[wifiIdx]
-
-
     print("Scan Complete")
 
-    #pokeWatchDog()
-    updateLEDScreen("Booting", "NET:%s" % m_ssid);
-    wlan.connect(m_ssid, m_password)
 
-    updateLEDScreen("Connecting!", "NET:%s" % m_ssid);
-    
+
+def TestNetwork():
     while True:
-        print('waiting for connection...  Status=%d, connected=%d' % (wlan.status(), wlan.isconnected()))
-        if wlan.status() < 0 or wlan.status() >= 3:
-            updateLEDScreen("Connected!", "NET:%s" % m_ssid);
-            break
+        
         #pokeWatchDog()
-        time.sleep(1)
+        updateLEDScreen("Booting", "NET:%s" % m_ssid);
+        wlan.connect(m_ssid, m_password)
 
-    if wlan.isconnected():
-        status = wlan.ifconfig()
-    else:
-        print('network connection failed')
-        continue
+        updateLEDScreen("Connecting!", "NET:%s" % m_ssid);
+        
+        while True:
+            print('waiting for connection...  Status=%d, connected=%d' % (wlan.status(), wlan.isconnected()))
+            if wlan.status() < 0 or wlan.status() >= 3:
+                updateLEDScreen("Connected!", "NET:%s" % m_ssid);
+                break
+            #pokeWatchDog()
+            time.sleep(1)
+
+        if wlan.isconnected():
+            status = wlan.ifconfig()
+        else:
+            print('network connection failed')
+            continue
 
 
-    print(status)
-    print("--- %s" % status[0]) 
-    ipAddress = status[0]  
-    led_row_3 = ipAddress 
-   
-    #pokeWatchDog()
-    #s = socket.socket()
-    #s.bind(addr)
-    #s.listen(1)
-
-    #print('listening on', addr)
+        print(status)
+        print("--- %s" % status[0]) 
+        ipAddress = status[0]  
+        led_row_3 = ipAddress 
     
-    # return (n_trans, n_recv)
-    trans = 5000
-    recv = 0
-    idx = 0
-    goodMsgs = []
-    packets = 2
-    steps = 20
-    
-    for idx in range(0, steps, 1):
-        print("Setting msg idx %d" % idx)
-        goodMsgs.append(0)
-        goodMsgs[idx] = 0
+        #pokeWatchDog()
+        #s = socket.socket()
+        #s.bind(addr)
+        #s.listen(1)
+
+        #print('listening on', addr)
+        
+        # return (n_trans, n_recv)
+        trans = 5000
+        recv = 0
+        idx = 0
+        goodMsgs = []
+        packets = 2
+        steps = 20
+        
+        for idx in range(0, steps, 1):
+            print("Setting msg idx %d" % idx)
+            goodMsgs.append(0)
+            goodMsgs[idx] = 0
+                
+        while True:
+            if False == wlan.isconnected():
+                print("NOT onnected")
+                break        
+        
+            ntrans, nrecv = ping('8.8.8.8', count=packets, timeout=500, interval=50, quiet=False, size=64)
+            trans += ntrans
+            recv += nrecv
             
-    while True:
-        if False == wlan.isconnected():
-            print("NOT onnected")
-            break        
-       
-        ntrans, nrecv = ping('8.8.8.8', count=packets, timeout=500, interval=50, quiet=False, size=64)
-        trans += ntrans
-        recv += nrecv
-        
-        idx += 1
-        if idx >= len(goodMsgs):
-            idx = 0
-        
-        goodMsgs[idx] = nrecv
-        total = 0
-        for i in range(0, len(goodMsgs), 1):
-            total += goodMsgs[i]
-        
-        wifi_confidence = (int)((total / (packets * len(goodMsgs))) * 100)
-        #updateLEDScreen("CONFIDENCE", ("%s" % wifi_confidence))
-        updateLEDScreen(m_ssid, ("T:%d  R:%d" % (packets * len(goodMsgs), total)))
-    #print("%d --- %d" % trans, recv)
+            idx += 1
+            if idx >= len(goodMsgs):
+                idx = 0
+            
+            goodMsgs[idx] = nrecv
+            total = 0
+            for i in range(0, len(goodMsgs), 1):
+                total += goodMsgs[i]
+            
+            wifi_confidence = (int)((total / (packets * len(goodMsgs))) * 100)
+            #updateLEDScreen("CONFIDENCE", ("%s" % wifi_confidence))
+            updateLEDScreen(m_ssid, ("T:%d  R:%d" % (packets * len(goodMsgs), total)))
+        #print("%d --- %d" % trans, recv)
     
