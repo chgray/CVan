@@ -42,11 +42,12 @@ from ssd1306 import SSD1306_I2C
 oled = SSD1306_I2C(128, 64, i2c)
 
 
-
+led_row_3 = ""
 def updateLEDScreen(msg, msg2):
     oled.fill(0) # Black
     oled.text(msg, 0, 0)   
-    oled.text(msg2, 0, 20)       
+    oled.text(msg2, 0, 15)   
+    oled.text(led_row_3, 0, 30)    
     oled.show()
         
 
@@ -250,7 +251,8 @@ while True:
 
     print(status)
     print("--- %s" % status[0]) 
-    ipAddress = status[0]   
+    ipAddress = status[0]  
+    led_row_3 = ipAddress 
    
     #pokeWatchDog()
     #s = socket.socket()
@@ -270,6 +272,6 @@ while True:
         trans, recv = ping('8.8.8.8', count=4, timeout=500, interval=50, quiet=False, size=64)
         t += trans
         r += recv
-        updateLEDScreen(("STATS:%s" % ipAddress), ("T:%d  R:%d" % (t, r)))
+        updateLEDScreen("STATS:", ("T:%d  R:%d" % (t, r)))
     #print("%d --- %d" % trans, recv)
     
