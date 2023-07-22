@@ -51,23 +51,61 @@ rotaryPower=machine.Pin(21, Pin.OUT)
 button=machine.Pin(20, Pin.IN)
 rotaryPower.value(1)
 
-rotary = RotaryIRQ(pin_num_clk=18, 
+
+def SelectFromList(items):
+    scroll = 0
+    rotaryOld = -1
+    buttonOld = -1
+    highlightIdx = 0
+    ret = -1
+    rotary = RotaryIRQ(pin_num_clk=18, 
               pin_num_dt=19, 
               min_val=0, 
-              max_val=30, 
+              max_val=len(items), 
               reverse=True, 
               range_mode=RotaryIRQ.RANGE_BOUNDED)
+    
+    while True:
+        rotaryNew = rotary.value()
+        buttonNew = button.value()
+        
+        if rotaryOld == rotaryNew and buttonOld == buttonNew:
+            continue
+        
+        if 0 == buttonNew:
+            print("RETURNING %d" % rotary.value())
+            ret = rotary.value()
+            break
+        
+        rotaryOld = rotaryNew
+        buttonOld = buttonNew
+        highlightIdx = rotary.value()
+        
+        print ("Different (%d, %d)" % (rotaryNew, buttonNew))
+        
+        scroll = highlightIdx
+        
+        print ("Scroll : %d" % scroll)
+        
+        oled.fill(0)
+        y = 0
+        for idx in range(scroll, min(scroll + 4, len(items)), 1):
+                       
+            if highlightIdx == idx:
+                text = (">%s" % items[idx])                
+            else:
+                text = (" %s" % items[idx])               
+        
+            print(text)
+            oled.text(text, 0, y)
+            y += 15
+        oled.show()        
+    return ret
 
-
-#while True:
-    #mode = rotary.value()
-    #print("MODE: %d, %d" % (rotary.value(), button.value()))
-    #rotaryPower.toggle()
-    #sleep(1)
 
 led_row_3 = ""
 led_row_4 = ""
-wifi_confidence = 50
+wifi_confidence = 0
 
 def updateLEDScreen(msg, msg2):
     oled.fill(0) # Black
@@ -239,27 +277,56 @@ def ping(host, count=4, timeout=5000, interval=10, quiet=False, size=64):
 
 
 
+def findIdexInArray(list, item):
+    for idx in range(0, len(list), 1):
+        if list[idx] == item:
+            return idx
 
+    return -1
 
 m_ssid = 'HelloX'
 m_password = 'deadbeef01'
 
 
 while True:
-    scanlist = wlan.scan()
-    updateLEDScreen("Booting", "Got WiFiScan")
+    
+    wifiIdx = 0
+    wifiSSIDs = []
+    wifiSSIDs.append("<rescan>")
+    
+    while 0 == wifiIdx:  
+        scanlist = wlan.scan()
+        updateLEDScreen("Booting", "Got WiFiScan")
 
-    print("Got Scanlist")
-    for result in scanlist:
-        ssid, bssid, channel, RSSI, authmode, hidden = result
-        
-        b = ssid.decode()        
-        print("     %s == %s,  authmode=%d" % (b, ubinascii.hexlify(bssid), authmode))
-        
-        if b == 'Hello':
-            print("Hello!")
-            m_ssid = "Hello"
+        print("Got Scanlist")
+        for result in scanlist:
+            ssid, bssid, channel, RSSI, authmode, hidden = result
             
+            b = ssid.decode()  
+            
+            if 0 == len(b):
+                print("Skipping %s" % b)
+                continue      
+            
+            if -1 != findIdexInArray(wifiSSIDs, b):
+                print("ALREADY KNOW %s" % b)
+                continue
+            
+            print("     %s == %s,  authmode=%d" % (b, ubinascii.hexlify(bssid), authmode))
+            wifiSSIDs.append(b)
+            
+            #if b == 'Hello':
+            #    print("Hello!")
+            #    m_ssid = "Hello"
+            
+        hi = SelectFromList(wifiSSIDs)
+        wifiIdx = hi
+        
+        print("SELECTED %d" % hi)
+            
+
+    m_ssid = wifiSSIDs[wifiIdx]
+
 
     print("Scan Complete")
 
