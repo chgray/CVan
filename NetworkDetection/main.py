@@ -8,6 +8,10 @@ import time
 import ubinascii
 import _thread
 import os
+from Rotary import Rotary
+import time
+from RotaryIRQ import RotaryIRQ
+
 #import ipaddress
 #import wifi
 #import socketpoo
@@ -41,6 +45,25 @@ i2c=machine.I2C(0,sda=sda, scl=scl, freq=400000)
 from ssd1306 import SSD1306_I2C
 oled = SSD1306_I2C(128, 64, i2c)
 
+
+# Setup Rotary Dial
+rotaryPower=machine.Pin(21, Pin.OUT)
+button=machine.Pin(20, Pin.IN)
+rotaryPower.value(1)
+
+rotary = RotaryIRQ(pin_num_clk=18, 
+              pin_num_dt=19, 
+              min_val=0, 
+              max_val=30, 
+              reverse=True, 
+              range_mode=RotaryIRQ.RANGE_BOUNDED)
+
+
+#while True:
+    #mode = rotary.value()
+    #print("MODE: %d, %d" % (rotary.value(), button.value()))
+    #rotaryPower.toggle()
+    #sleep(1)
 
 led_row_3 = ""
 led_row_4 = ""
