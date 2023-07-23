@@ -3,6 +3,7 @@ import time
 import machine, onewire, ds18x20, os
 from time import sleep
 import network
+import ujson
 import socket
 import time
 import ubinascii
@@ -99,7 +100,16 @@ def SelectFromList(items):
             print(text)
             oled.text(text, 0, y)
             y += 15
-        oled.show()        
+        oled.show()   
+        
+        
+    start = time.ticks_ms()
+    while 0 == button.value():
+        if start + 1000 > time.ticks_ms():
+            continue
+        print("Waiting for button to go up")
+        updateLEDScreen("INFO", "Release Button")
+
     return ret
 
 
@@ -108,6 +118,9 @@ led_row_4 = ""
 wifi_confidence = 0
 
 def updateLEDScreen(msg, msg2):
+    global led_row_3
+    global led_row_4
+    global wifi_confidence
     oled.fill(0) # Black
     oled.text(msg, 0, 0)   
     oled.text(msg2, 0, 15)   
@@ -116,6 +129,7 @@ def updateLEDScreen(msg, msg2):
     oled.rect(0,50,WIDTH,12, 1)
     
     #p/100 = i/o
+    print("Wifi Confidence %d" % wifi_confidence)
     w = (int)(wifi_confidence/100 * (WIDTH-2))
     oled.fill_rect(1, 50, w, 12, 1)
     
@@ -277,32 +291,24 @@ def ping(host, count=4, timeout=5000, interval=10, quiet=False, size=64):
 
 
 
-def findIdexInArray(list, item):
+def findIdexInArray(list, item):    
     for idx in range(0, len(list), 1):
         if list[idx] == item:
             return idx
 
     return -1
 
-
-def MainMenu():
-    menu = []
-    menu.append("Test Network")
-    menu.append("Find Network")
-    menuIDx = SelectFromList(menu)
+def DisplayError(msg, msg2, msg3):
+    global led_row_3
+    global led_row_4
+    global button
+    led_row_3 = "press key"
+    updateLEDScreen(msg, msg2)
     
-    if 0 == menuIdx:
-        TestNetwork()
-    elif 1 == menuIdx:
-        FindWifi()
-    
-
-
-m_ssid = 'HelloX'
-m_password = 'deadbeef01'
-
-MainMenu()
-
+    while 1 == button.value():
+        sleep(0.001)
+        
+    print("ERROR finished")
 
 def FindWifi():
     wifiIdx = 0
@@ -329,35 +335,48 @@ def FindWifi():
             
             print("     %s == %s,  authmode=%d" % (b, ubinascii.hexlify(bssid), authmode))
             wifiSSIDs.append(b)
-            
-            #if b == 'Hello':
-            #    print("Hello!")
-            #    m_ssid = "Hello"
-            
+                        
         hi = SelectFromList(wifiSSIDs)
         wifiIdx = hi
         
         print("SELECTED %d" % hi)
             
 
-    m_ssid = wifiSSIDs[wifiIdx]
+    ssid = wifiSSIDs[wifiIdx]
     print("Scan Complete")
+    return ssid
 
 
 
-def TestNetwork():
+def TestNetwork(config):
+    global led_row_3
+    global led_row_4
+    global wifi_confidence
+    
+    if not ("SelectedNetwork" in config):
+        DisplayError("NO Selected Network", "", "")
+        return
+    
+    ssid = config["SelectedNetwork"]
+    
     while True:
+        print("Looking up : %s" % ssid)
+        
+        if not (ssid in config["pwds"]):
+            DisplayError("NO PASSWORD", ssid, "")
+            return
+        pwd = config["pwds"][ssid]
         
         #pokeWatchDog()
-        updateLEDScreen("Booting", "NET:%s" % m_ssid);
-        wlan.connect(m_ssid, m_password)
+        updateLEDScreen("Booting", "NET:%s" % ssid);
+        wlan.connect(ssid, pwd)
 
-        updateLEDScreen("Connecting!", "NET:%s" % m_ssid);
+        updateLEDScreen("Connecting!", "NET:%s" % ssid);
         
         while True:
             print('waiting for connection...  Status=%d, connected=%d' % (wlan.status(), wlan.isconnected()))
             if wlan.status() < 0 or wlan.status() >= 3:
-                updateLEDScreen("Connected!", "NET:%s" % m_ssid);
+                updateLEDScreen("Connected!", "NET:%s" % ssid);
                 break
             #pokeWatchDog()
             time.sleep(1)
@@ -366,7 +385,8 @@ def TestNetwork():
             status = wlan.ifconfig()
         else:
             print('network connection failed')
-            continue
+            DisplayError("Cant Connect", ("Error:" % wlan.status()), ssid )
+            return
 
 
         print(status)
@@ -414,6 +434,67 @@ def TestNetwork():
             
             wifi_confidence = (int)((total / (packets * len(goodMsgs))) * 100)
             #updateLEDScreen("CONFIDENCE", ("%s" % wifi_confidence))
-            updateLEDScreen(m_ssid, ("T:%d  R:%d" % (packets * len(goodMsgs), total)))
+            updateLEDScreen(ssid, ("T:%d  R:%d" % (packets * len(goodMsgs), total)))
         #print("%d --- %d" % trans, recv)
     
+    
+def fileExists(path):
+    try:
+        os.stat(path)
+        return True
+    except OSError:
+            return False
+    
+def LoadConfigFile(fileName):   
+    if fileExists(fileName):
+        print("Config Exists")
+        with open(fileName) as configFile:
+            value = configFile.readlines()[0]
+            print(value)    
+            return ujson.loads(value)
+    else:
+        print("No Config File; assuming defaults")
+        return {}
+    
+def SaveConfigFile(fileName, config):
+    with open(fileName,'w') as f:
+        f.write(ujson.dumps(config))
+    
+    
+def MainMenu(config):
+    start = time.ticks_ms()
+    while 0 == button.value():
+        if start + 1000 > time.ticks_ms():
+            continue
+        print("Waiting for button to go up")
+        updateLEDScreen("INFO", "Release Button")
+        
+    menu = []
+    menu.append("Test Network")
+    menu.append("Select WiFi")
+    menuIdx = SelectFromList(menu)
+    
+    print("MainMenu Choice: %d" % menuIdx)
+   
+    if 0 == menuIdx:
+        TestNetwork(config)
+    elif 1 == menuIdx:
+        ssid = FindWifi()
+        print("Selected %s" % ssid)
+        
+        config["SelectedNetwork"] = ssid
+        SaveConfigFile("WiFi.config", config);
+        return
+
+
+
+config = LoadConfigFile("WiFi.config")
+print("READ AS JSON %s" % ujson.dumps(config))
+
+print("Modified AS JSON %s" % ujson.dumps(config))
+SaveConfigFile("WiFi.config", config)
+x = ujson.loads(ujson.dumps(config))
+print (x)
+while True:
+    MainMenu(config)
+
