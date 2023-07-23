@@ -13,10 +13,6 @@ from Rotary import Rotary
 import time
 from RotaryIRQ import RotaryIRQ
 
-#import ipaddress
-#import wifi
-#import socketpoo
-
 
 # https://gist.github.com/shawwwn/91cc8979e33e82af6d99ec34c38195fb
 
@@ -149,8 +145,8 @@ def pokeWatchDog():
     global fixedLed
     
     #led = Pin("LED", Pin.OUT)
-    print("Toggle - WD")
-    fixedLed.toggle()
+    #print("Toggle - WD")
+    #fixedLed.toggle()
     wdt.feed() #resets countdown
 
 def pokeWatchDogTimer(t):
@@ -348,6 +344,89 @@ def FindWifi():
 
 
 
+def SetPWD(config):
+        
+    if not ("SelectedNetwork" in config):
+        DisplayError("NO Selected Network", "", "")
+        return
+    ssid = config["SelectedNetwork"]
+    
+    print(config["pwds"])
+    
+    if (ssid in config["pwds"]):
+        pwd = list(config["pwds"][ssid])
+        print("We have pwd")
+    else:
+        pwd = list()    
+        print("NO PWD for %s" % ssid)
+    
+
+    #nl = list(pwd)
+    #nl[0] = 'x'
+    #pwd = "".join(nl)
+    
+    finished = False
+    
+    while not finished:
+        
+        letters = []
+        for i in range(0, len(pwd), 1):
+            l = pwd[i]
+            letters.append(l)
+        letters.append("NEW CHARACTER")
+        letters.append("DEL CHARACTER")
+        letters.append("SAVE")
+               
+        charIndex = SelectFromList(letters)
+        print("Selected Idx : %d" % charIndex)
+        
+        
+        if len(pwd) == charIndex:
+            print("NEW CHAR")
+            pwd.append('*')
+            
+        elif len(pwd)+1 == charIndex:
+            print("DELCHAR")
+            if len(pwd) >= 1:
+                del pwd[len(pwd)-1]
+            config["pwds"][ssid] = "".join(pwd)
+            SaveConfigFile("WiFi.config", config)
+            return
+            
+        elif len(pwd)+2 == charIndex:
+            print("SAVE")
+            config["pwds"][ssid] = "".join(pwd)
+            SaveConfigFile("WiFi.config", config)
+            return
+        
+        letters = []
+        letters.append("BACK")
+                
+        for i in range(0, 26, 1):
+            l = chr(ord('A')+i)
+            letters.append(l)
+            
+        for i in range(0, 10, 1):
+            l = chr(ord('0')+i)
+            
+            letters.append(l)
+        for i in range(0, 26, 1):
+            l = chr(ord('a')+i)
+            letters.append(l)
+        
+        idx = SelectFromList(letters)
+        
+        
+        if 0 == idx:
+            print("Back")
+        else:
+            pwd[charIndex] = letters[idx][0]
+        
+    return ssid
+
+
+
+
 def TestNetwork(config):
     global led_row_3
     global led_row_4
@@ -385,7 +464,7 @@ def TestNetwork(config):
             status = wlan.ifconfig()
         else:
             print('network connection failed')
-            DisplayError("Cant Connect", ("Error:" % wlan.status()), ssid )
+            DisplayError("Cant Connect", ("Error:%d" % wlan.status()), ssid )
             return
 
 
@@ -394,12 +473,6 @@ def TestNetwork(config):
         ipAddress = status[0]  
         led_row_3 = ipAddress 
     
-        #pokeWatchDog()
-        #s = socket.socket()
-        #s.bind(addr)
-        #s.listen(1)
-
-        #print('listening on', addr)
         
         # return (n_trans, n_recv)
         trans = 5000
@@ -468,22 +541,24 @@ def MainMenu(config):
             continue
         print("Waiting for button to go up")
         updateLEDScreen("INFO", "Release Button")
-        
+               
     menu = []
-    menu.append("Test Network")
+    menu.append("Test Network")    
     menu.append("Select WiFi")
     menuIdx = SelectFromList(menu)
     
     print("MainMenu Choice: %d" % menuIdx)
-   
+       
     if 0 == menuIdx:
         TestNetwork(config)
     elif 1 == menuIdx:
         ssid = FindWifi()
         print("Selected %s" % ssid)
-        
+                
         config["SelectedNetwork"] = ssid
         SaveConfigFile("WiFi.config", config);
+        
+        SetPWD(config)
         return
 
 
