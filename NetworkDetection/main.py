@@ -431,6 +431,7 @@ def TestNetwork(config):
     global led_row_3
     global led_row_4
     global wifi_confidence
+    global button
     
     if not ("SelectedNetwork" in config):
         DisplayError("NO Selected Network", "", "")
@@ -505,6 +506,10 @@ def TestNetwork(config):
             for i in range(0, len(goodMsgs), 1):
                 total += goodMsgs[i]
             
+            
+            if 0 == button.value():
+                return
+            
             wifi_confidence = (int)((total / (packets * len(goodMsgs))) * 100)
             #updateLEDScreen("CONFIDENCE", ("%s" % wifi_confidence))
             updateLEDScreen(ssid, ("T:%d  R:%d" % (packets * len(goodMsgs), total)))
@@ -570,6 +575,9 @@ print("Modified AS JSON %s" % ujson.dumps(config))
 SaveConfigFile("WiFi.config", config)
 x = ujson.loads(ujson.dumps(config))
 print (x)
+
+TestNetwork(config)
+
 while True:
     MainMenu(config)
 
