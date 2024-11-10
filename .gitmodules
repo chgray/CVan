@@ -1,0 +1,3 @@
+[submodule "external/RPiAutoUpdate"]
+	path = external/RPiAutoUpdate
+	url = https://github.com/chgray/RPiAutoUpdate
