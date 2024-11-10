@@ -1,2 +1,3 @@
-sudo apt-get install python3-pip  -y
-sudo pip3 install adafruit-ampy
+The best way to go is to 
+
+1. use the auto update (../external) to bootstrap all the bits
