@@ -1,5 +1,5 @@
 {
-    "Version": 22,
+    "Version": 23,
     "DeviceFunction": "https://raw.githubusercontent.com/chgray/CVan/refs/heads/user/chgray/autoupdate/NetworkDetection/CVan.json",
     "Files": [
         {
@@ -33,8 +33,8 @@
             "Hash": "8bbebbba2f3e6e571945e9d93370f08ead1eaed295bd0dcdda5b0d853bbb59f7"
         },
         {
-            "URL": "https://raw.githubusercontent.com/chgray/CVan/refs/heads/main/NetworkDetection/RPIAutoUpdate_Application.py",
-            "FileName": "RPIAutoUpdate_Application.py",
+            "URL": "https://raw.githubusercontent.com/chgray/CVan/refs/heads/main/NetworkDetection/RPIAutoUpdate_application.py",
+            "FileName": "RPIAutoUpdate_application.py",
             "Operation": "Delete",
             "Hash": "eb2e0fba9bc25f7ae76e990a96bc648c1718a104bb29be3b87003fac9e6865eb"
         }
