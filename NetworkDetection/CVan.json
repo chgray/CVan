@@ -33,7 +33,7 @@
             "Hash": "8bbebbba2f3e6e571945e9d93370f08ead1eaed295bd0dcdda5b0d853bbb59f7"
         },
         {
-            "URL": "https://raw.githubusercontent.com/chgray/CVan/refs/heads/main/NetworkDetection/RPiAutoUpdate_application.py",
+            "URL": "https://raw.githubusercontent.com/chgray/CVan/refs/heads/user/chgray/autoupdate/NetworkDetection/RPIAutoUpdate_application.py",
             "FileName": "RPiAutoUpdate_application.py",
             "Operation": "Update",
             "Hash": "9f893f6eb7d5fc3ce4f62bbb09593998acbb89f7c6adc7bdcca27e2cf7967169"
