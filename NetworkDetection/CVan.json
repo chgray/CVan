@@ -35,8 +35,8 @@
         {
             "URL": "https://raw.githubusercontent.com/chgray/CVan/refs/heads/main/NetworkDetection/RPiAutoUpdate_application.py",
             "FileName": "RPiAutoUpdate_application.py",
-            "Operation": "Delete",
-            "Hash": "eb2e0fba9bc25f7ae76e990a96bc648c1718a104bb29be3b87003fac9e6865eb"
+            "Operation": "Update",
+            "Hash": "9f893f6eb7d5fc3ce4f62bbb09593998acbb89f7c6adc7bdcca27e2cf7967169"
         }
     ]
 }
