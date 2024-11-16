@@ -54,6 +54,7 @@ class SerialOLED:
 
 class RPIAutoUpdate_application:
 
+    VERSION = 1
     WIDTH  = 128                                            # oled display width
     HEIGHT = 64                                             # oled display height
 
@@ -535,7 +536,7 @@ class RPIAutoUpdate_application:
 
             while True:
                 if False == self.wlan.isconnected():
-                    print("NOT onnected")
+                    print("NOT Connected")
                     break
 
                 ntrans, nrecv = self.ping('8.8.8.8', count=packets, timeout=500, interval=50, quiet=False, size=64)
@@ -557,7 +558,8 @@ class RPIAutoUpdate_application:
 
                 self.wifi_confidence = (int)((total / (packets * len(goodMsgs))) * 100)
                 #updateLEDScreen("CONFIDENCE", ("%s" % wifi_confidence))
-                self.updateLEDScreen(ssid, ("T:%d  R:%d" % (packets * len(goodMsgs), total)))
+                msg = "%s, v=%d" % (ssid, self.VERSION)
+                self.updateLEDScreen(msg, ("T:%d  R:%d" % (packets * len(goodMsgs), total)))
             #print("%d --- %d" % trans, recv)
 
 
