@@ -31,8 +31,28 @@ import framebuf
 import math
 import utime
 
+class SerialOLED:
+    def fill(self, x):
+        #print("Filling %d" % x)
+        pass
 
-class RPiAutoUpdate_application:
+    def text(self, text, x, y):
+        print("Text %s at %d, %d" % (text, x, y))
+
+    def show(self):
+        #print("Show")
+        pass
+
+    def rect(self, x, y, w, h, c):
+        #print("Rect %d, %d, %d, %d, %d" % (x, y, w, h, c))
+        pass
+
+    def fill_rect(self, x, y, w, h, c):
+        #print("Fill Rect %d, %d, %d, %d, %d" % (x, y, w, h, c))
+        pass
+
+
+class RPIAutoUpdate_application:
 
     WIDTH  = 128                                            # oled display width
     HEIGHT = 64                                             # oled display height
@@ -43,7 +63,6 @@ class RPiAutoUpdate_application:
     i2c=machine.I2C(0,sda=sda, scl=scl, freq=400000)
     #  print(i2c.scan())
     from ssd1306 import SSD1306_I2C
-    oled = SSD1306_I2C(128, 64, i2c)
 
 
     # Setup Rotary Dial
@@ -69,6 +88,12 @@ class RPiAutoUpdate_application:
 
 
     def Main(self):
+        try:
+            self.oled = SSD1306_I2C(128, 64, self.i2c)
+        except Exception as e:
+            print("DOH")
+            self.oled = SerialOLED()
+            # machine.reset()
 
         self.updateLEDScreen("Booting", "Init")
 
@@ -454,7 +479,7 @@ class RPiAutoUpdate_application:
         global button
 
         if not ("SelectedNetwork" in config):
-            DisplayError("NO Selected Network", "", "")
+            self.DisplayError("NO Selected Network", "", "")
             return
 
         ssid = config["SelectedNetwork"]
@@ -587,5 +612,5 @@ class RPiAutoUpdate_application:
 
 
 
-x = RPiAutoUpdate_application()
+x = RPIAutoUpdate_application()
 x.Main()
