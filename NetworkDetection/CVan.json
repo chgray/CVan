@@ -6,7 +6,7 @@
             "URL": "https://raw.githubusercontent.com/chgray/RPiAutoUpdate/refs/heads/user/chgray/iterating/RPIAutoUpdate.py",
             "FileName": "RPIAutoUpdate.py",
             "Operation": "Update",
-            "Hash": "8bbebbba2f3e6e571945e9d93370f08ead1eaed295bd0dcdda5b0d853bbb59f7"
+            "Hash": "d592e5c24df575ff33b97695fce5774a765e47f219240fd4371af200d0edf89d"
         },
         {
             "URL": "https://raw.githubusercontent.com/chgray/CVan/refs/heads/main/NetworkDetection/Rotary.py",
@@ -30,13 +30,13 @@
             "URL": "https://raw.githubusercontent.com/chgray/RPiAutoUpdate/refs/heads/user/chgray/iterating/RPIAutoUpdate_Main.py",
             "FileName": "main.py",
             "Operation": "Update",
-            "Hash": "8bbebbba2f3e6e571945e9d93370f08ead1eaed295bd0dcdda5b0d853bbb59f7"
+            "Hash": "27e6e5aba5893a49f6e1abf56e95b475d1bf5e6575be52beaabafbf130c8dc81"
         },
         {
             "URL": "https://raw.githubusercontent.com/chgray/CVan/refs/heads/user/chgray/autoupdate/NetworkDetection/RPIAutoUpdate_application.py",
             "FileName": "RPIAutoUpdate_application.py",
             "Operation": "Update",
-            "Hash": "9f893f6eb7d5fc3ce4f62bbb09593998acbb89f7c6adc7bdcca27e2cf7967169"
+            "Hash": "6ed5c135b85eb539b3e3d16c123bd97d711b6a8cb935116943ca9fbdd9f865a1"
         }
     ]
 }

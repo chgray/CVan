@@ -614,5 +614,5 @@ class RPIAutoUpdate_application:
 
 
 
-x = RPIAutoUpdate_application()
-x.Main()
+#x = RPIAutoUpdate_application()
+#x.Main()
